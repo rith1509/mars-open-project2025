@@ -496,11 +496,6 @@ Open issues or pull requests to:
 
 ---
 
-## 📜 License
-
-Specify your license here, e.g., MIT License.
-
----
 
 ## Acknowledgments
 
