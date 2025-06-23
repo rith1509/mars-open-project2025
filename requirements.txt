@@ -1,0 +1,9 @@
+torch            # or torch==1.x.x
+torchaudio       # matching version
+streamlit
+librosa
+numpy
+pandas
+matplotlib
+seaborn
+tqdm
