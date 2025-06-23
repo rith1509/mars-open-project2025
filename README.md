@@ -2,111 +2,146 @@
 
 **Project Overview**
 
-**Speech Emotion Recognition (SER) Pipeline** is an end-to-end system for classifying emotions from speech audio. This repository contains code to preprocess audio data, train a custom Inception-style CNN model for SER (no external pretrained weights), evaluate performance against strict criteria (per-class accuracy ≥75%, overall accuracy ≥80%, weighted F1 ≥80%), and deploy a Streamlit web app for real-time emotion prediction from `.wav` files.
+This repository implements an end-to-end Speech Emotion Recognition (SER) pipeline, including:
+- **Data preprocessing**: load audio files, truncate/pad to middle 2 seconds at 48 kHz, compute log-mel spectrograms.
+- **Model training**: a custom Inception-style CNN trained from scratch on spectrogram inputs, with class balancing.
+- **Evaluation**: in the training notebook, produce confusion matrix, classification report, and ensure strict criteria:
+  - Overall accuracy ≥ 80%
+  - Weighted F1 score ≥ 80%
+  - Per-class accuracy ≥ 75%
+- **Inference & demo**:
+  - **Notebook** (`inception.ipynb`): training & evaluation pipeline on Kaggle or local Jupyter.
+  - **Model weights** (`inception_ser_final.pt`): saved best model state_dict.
+  - **Streamlit app** (`app.py`): upload a `.wav` file locally and get predicted emotion + probabilities.
+- **Demo video**: Provided separately via Google Drive link in the submission form (do not include the video file in this repo).
 
-We use RAVDESS-like datasets (or your specified dataset) where you have file paths and integer emotion labels in a DataFrame. The pipeline extracts the middle 2 seconds at 48 kHz, computes log-mel spectrograms, and trains an Inception-style CNN from scratch with class-balancing and optional focal loss. A Streamlit app loads the trained weights and serves predictions.
-
-🔗 **Demo Video**: \[Link to your 2-min demo video showing the web-app in action]
+This README is tailored for usage **on Kaggle** for training/experiments and **locally** for running the Streamlit app. It references only the files present in this repository.
 
 ---
 
 ## 🚀 Repository Structure
 
-```
-├── notebooks/
-│   └── training_notebook.ipynb    # Jupyter notebook with full training pipeline, experiments, metrics
-├── app.py                         # Streamlit web-app for uploading .wav and showing predicted emotion
-├── inception_ser_final.pt         # Trained model weights (state_dict) for Inception-style CNN
-├── requirements.txt               # List of pip/conda dependencies
-└── README.md                      # This file
-```
+speech_emotion/
+├── app.py # Streamlit web-app for local inference
+├── inception.ipynb # Jupyter/Kaggle notebook: training & evaluation pipeline
+├── inception_ser_final.pt # Trained model weights (state_dict) for Inception-style CNN
+├── requirements.txt # Python dependencies (for local environment)
+└── README.md # This file
+
+markdown
+Copy
+Edit
+
+- **venv/**: If you set up a local virtual environment; ignored on Kaggle.
+- **app.py**: Streamlit application for local inference (upload WAV, display predicted emotion & probabilities).
+- **inception.ipynb**: Notebook containing the full training pipeline: data loading, preprocessing, model definition, training loop, evaluation metrics and confusion matrices.
+- **inception_ser_final.pt**: Saved PyTorch `state_dict` of the best model from training.
+- **requirements.txt**: List of Python packages to install for local usage.
+- **README.md**: This documentation.
 
 ---
 
-## ✨ Features
+## ✨ Core Features
 
-* **Custom Inception-Style CNN**: Trained from scratch on log-mel spectrogram inputs (middle 2 seconds at 48 kHz), no external pretrained backbones.
-* **Audio Preprocessing**:
-
-  * Load at 48 kHz, truncate/pad to middle 2 seconds per file.
-  * Compute log-mel spectrogram (64 Mel bins), normalize per example.
-  * (Optional augmentations during training: pitch-shift, random cropping of 2s segment for long audio.)
-* **Class Balancing**:
-
-  * WeightedRandomSampler with inverse-frequency sampling, with configurable oversample boost for underperforming classes.
-  * Option to use Focal Loss to focus on hard examples.
-* **Training Utilities**:
-
-  * PyTorch training loop with AdamW (lr=1e-4) and CosineAnnealingLR.
-  * Early stopping on weighted F1 score (patience configurable).
-  * Logging via tqdm and printed metrics per epoch.
-* **Evaluation**:
-
-  * Confusion matrix visualization.
-  * Classification report (precision, recall, F1 per class).
-  * Per-class accuracy printed; aims: each class ≥75% accuracy, overall accuracy ≥80%, weighted F1 ≥80%.
-* **Streamlit Web App**:
-
-  * Upload a `.wav` file; load middle 2s at 48 kHz; compute log-mel; normalize; feed to trained model.
-  * Display audio playback, predicted emotion label + confidence, bar chart of class probabilities.
-  * Easy setup: conda environment, install dependencies, run `streamlit run app.py`.
-* **Extensibility**:
-
-  * Easily adjust oversample\_boost factors for underperforming classes.
-  * Toggle focal loss in training.
-  * Adjust hyperparameters: batch size, learning rate, epochs.
-* **Reproducibility**:
-
-  * Deterministic splits via `random_state=42`.
-  * Clear instructions to build DataFrame from your list of file paths and labels.
-  * README details environment setup, training steps, evaluation, and deployment.
+- **Custom Inception-Style CNN**  
+  - Trained from scratch on log-mel spectrogram inputs (middle 2 s at 48 kHz).  
+  - No external pretrained backbones.
+- **Audio Preprocessing**  
+  - Load audio at 48 kHz; pad/truncate to exact middle 2 seconds.  
+  - Compute log-mel spectrogram (64 mel bins, hop_length=512), normalize per example.  
+  - (Optional augmentations during training in notebook: random 2 s crop, pitch shift.)
+- **Class Balancing**  
+  - WeightedRandomSampler with inverse-frequency sampling.  
+  - Configurable oversample boost factors for underperforming classes.  
+  - (Optional) Focal Loss to focus on harder examples.
+- **Training Utilities**  
+  - PyTorch training loop with AdamW (lr=1e-4) and CosineAnnealingLR.  
+  - Early stopping on weighted F1 score (patience configurable).  
+  - Logging via tqdm and printed metrics per epoch.
+- **Evaluation**  
+  - Confusion matrix visualization in the notebook.  
+  - Classification report (precision, recall, F1 per class).  
+  - Per-class accuracy printed; goal: ≥ 75% per class, ≥ 80% overall accuracy, ≥ 80% weighted F1.
+- **Streamlit Web App** (`app.py`)  
+  - Upload a `.wav` file locally, extract middle 2 s at 48 kHz, compute log-mel, normalize, feed to trained model.  
+  - Display audio playback widget.  
+  - Show predicted emotion label + confidence, and bar chart of class probabilities.
+- **Reproducibility**  
+  - Deterministic train/test splits via `random_state=42` in notebook.  
+  - Clear instructions for Kaggle environment and local setup.
 
 ---
 
 ## 🛠 Tech Stack
 
-* **Language**: Python 3.9+
-* **Audio Processing**: librosa for loading audio and computing mel-spectrograms.
-* **Deep Learning**: PyTorch for model definition, training, and inference.
-* **Data Handling & Metrics**:
-
-  * pandas for DataFrame operations.
-  * scikit-learn for train/test split, metrics (accuracy, F1, confusion matrix).
-* **Visualization**: matplotlib and seaborn for confusion matrix plots.
-* **Web App**: Streamlit for interactive UI to upload `.wav` and show predictions.
-* **Environment**: Conda environment with CPU/GPU support for PyTorch; example instructions provided.
-
----
-
-## 📂 Dataset
-
-* Prepare a pandas DataFrame `df` with two columns:
-
-  * `speech`: full file paths to `.wav` audio files.
-  * `label`: integer emotion labels (0-based). Map original labels to 0..(C-1) if needed.
-* Example RAVDESS: filenames indicate actor and emotion; parse filenames to build `paths` and `labels`.
-* **Train/Test Split**: 80% train, 20% test (stratified by label).
-* **Custom Validation**: After training, evaluate on a held-out custom test set (provided by judges) in the same pipeline.
+- **Python**: 3.7+ on Kaggle; locally 3.9+ recommended  
+- **Audio Processing**: `librosa`  
+- **Deep Learning**: `torch` / `torchvision` / `torchaudio`  
+- **Data Handling & Metrics**: `pandas`, `numpy`, `scikit-learn`  
+- **Visualization**: `matplotlib`, `seaborn`, `tqdm`  
+- **Web App**: `streamlit` for local deployment  
+- **Environment**:  
+  - **Kaggle**: built-in GPU/CPU environment; install missing packages via pip in notebook.  
+  - **Local**: virtual environment or Conda, install dependencies from `requirements.txt`.
 
 ---
 
-## 🎯 Evaluation Criteria
+## 📂 Dataset & DataFrame Preparation
 
-* **Primary Judging**: Confusion matrix on validation data & custom test data.
-* **Target Metrics**:
+1. **Dataset Description**  
+   - The dataset contains `.wav` audio files labeled with emotion categories (e.g., RAVDESS-like or custom).  
+   - Filenames or metadata specify the emotion label for each file.
 
-  * **Overall accuracy ≥ 80%**
-  * **Weighted F1 score ≥ 80%**
-  * **Per-class accuracy ≥ 75%** for all emotion classes.
-* Inspect confusion matrix to see which classes underperform; adjust class balancing / augmentation.
+2. **Building the DataFrame** (in `inception.ipynb`)  
+   Prepare lists of file paths and labels, then build a pandas DataFrame:
+   ```python
+   import os
+   import pandas as pd
 
----
+   # Example: when using Kaggle, audio files are under /kaggle/input/your-dataset/
+   audio_dir = "/kaggle/input/your-ser-dataset/"
+   paths = []
+   labels = []
+   for root, _, files in os.walk(audio_dir):
+       for fname in files:
+           if fname.endswith(".wav"):
+               fullpath = os.path.join(root, fname)
+               # Parse emotion label from filename, e.g., by your naming convention:
+               emotion_label = parse_emotion_from_filename(fname)  # implement this function
+               paths.append(fullpath)
+               labels.append(emotion_label)
 
-## 📝 Preprocessing & Feature Extraction
+   df = pd.DataFrame({'speech': paths, 'label': labels})
+   # Map to 0-based integers if needed:
+   unique_labels = sorted(df['label'].unique())
+   label_map = {old: new for new, old in enumerate(unique_labels)}
+   df['label'] = df['label'].map(label_map)
+   print("Label mapping:", label_map)
+   print("Label distribution:\n", df['label'].value_counts().sort_index())
+Implement parse_emotion_from_filename(...) according to your dataset’s naming scheme.
 
-In training scripts or notebook, use the following function to extract log-mel spectrogram of the middle 2 seconds:
+Ensure labels are integers 0..C-1. Keep the same mapping for training and inference.
 
-```python
+Train/Test Split
+In the notebook:
+
+python
+Copy
+Edit
+from sklearn.model_selection import train_test_split
+paths = df['speech'].tolist()
+labels = df['label'].tolist()
+X_train, X_test, y_train, y_test = train_test_split(
+    paths, labels, test_size=0.2, stratify=labels, random_state=42
+)
+Use X_train, y_train for training (with augment=True), and X_test, y_test for validation (augment=False).
+
+📝 Preprocessing & Feature Extraction
+In inception.ipynb, define:
+
+python
+Copy
+Edit
 import numpy as np
 import librosa
 import random
@@ -120,9 +155,8 @@ def extract_logmel_spectrogram_middle2s(
     augment=False
 ):
     """
-    Load audio, extract exactly middle `duration` seconds at sampling rate `sr`,
-    pad if shorter, optionally random-crop if augment=True,
-    compute log-mel spectrogram, normalize to zero mean/unit variance.
+    Load audio at sampling rate sr, extract exactly middle duration seconds (pad if shorter or random-crop if augment=True),
+    optional pitch-shift augmentation, then compute log-mel spectrogram, normalize per-example.
     Returns: numpy array [1, n_mels, n_frames] (float32).
     """
     y, _ = librosa.load(file_path, sr=sr)
@@ -139,7 +173,7 @@ def extract_logmel_spectrogram_middle2s(
         else:
             start = (len(y) - target_len) // 2
         y = y[start:start + target_len]
-    # Optional pitch-shift augmentation
+    # Optional pitch-shift augmentation during training
     if augment and random.random() > 0.5:
         try:
             y = librosa.effects.pitch_shift(y=y, sr=sr, n_steps=np.random.uniform(-1,1))
@@ -150,360 +184,326 @@ def extract_logmel_spectrogram_middle2s(
     # Normalize per-example
     log_mel = (log_mel - np.mean(log_mel)) / (np.std(log_mel) + 1e-6)
     return log_mel.astype(np.float32)[None, :, :]  # shape [1, n_mels, n_frames]
-```
+Use augment=True for training DataLoader, augment=False for validation/test.
 
-For alternative 1D pipeline (CNN+LSTM), extract frame-wise MFCC+delta+log-mel+other spectral features aligned to a fixed frame length.
+In Kaggle, ensure to install librosa if not present:
 
----
+python
+Copy
+Edit
+!pip install librosa tqdm
+For local inference in app.py, use the same function (without augmentation) to extract spectrogram from uploaded WAV.
 
-## 🏗 Model Architecture
+🏗 Model Architecture
+Enhanced Inception-Style CNN
+Defined in both inception.ipynb (for training) and app.py (for inference). Ensure exactly the same model class in both places.
 
-### Enhanced Inception-Style CNN (from scratch)
+python
+Copy
+Edit
+import torch
+import torch.nn as nn
 
-* **Input**: `[B, 1, n_mels, n_frames]`, e.g. `1 × 64 × ~188` (for 2s @ 48kHz with hop\_length=512 → \~188 frames).
-* **Initial Conv Blocks**:
+class InceptionModule(nn.Module):
+    def __init__(self, in_channels, out1x1, red3x3, out3x3, red5x5, out5x5, pool_proj):
+        super().__init__()
+        self.branch1 = nn.Sequential(
+            nn.Conv2d(in_channels, out1x1, kernel_size=1),
+            nn.BatchNorm2d(out1x1),
+            nn.ReLU(inplace=True)
+        )
+        self.branch2 = nn.Sequential(
+            nn.Conv2d(in_channels, red3x3, kernel_size=1),
+            nn.BatchNorm2d(red3x3),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(red3x3, out3x3, kernel_size=3, padding=1),
+            nn.BatchNorm2d(out3x3),
+            nn.ReLU(inplace=True)
+        )
+        self.branch3 = nn.Sequential(
+            nn.Conv2d(in_channels, red5x5, kernel_size=1),
+            nn.BatchNorm2d(red5x5),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(red5x5, out5x5, kernel_size=5, padding=2),
+            nn.BatchNorm2d(out5x5),
+            nn.ReLU(inplace=True)
+        )
+        self.branch4 = nn.Sequential(
+            nn.MaxPool2d(kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(in_channels, pool_proj, kernel_size=1),
+            nn.BatchNorm2d(pool_proj),
+            nn.ReLU(inplace=True)
+        )
 
-  * Conv2d(1→64, kernel=7, stride=2, padding=3) → BN → ReLU → MaxPool(3×3, stride=2)
-  * Conv2d(64→64, 1×1) → BN → ReLU → Conv2d(64→192, 3×3, padding=1) → BN → ReLU → MaxPool(3×3, stride=2)
-* **Inception Modules**:
+    def forward(self, x):
+        b1 = self.branch1(x)
+        b2 = self.branch2(x)
+        b3 = self.branch3(x)
+        b4 = self.branch4(x)
+        return torch.cat([b1, b2, b3, b4], dim=1)
 
-  * Multiple InceptionModule blocks (as in GoogLeNet) with branches (1×1, 3×3 after reduction, 5×5 after reduction, pooling+proj).
-  * Sequence: incep3a, incep3b, pool, incep4a–4e, pool, incep5a–5b.
-* **Global Pool & Classifier**:
 
-  * AdaptiveAvgPool2d → Flatten → Dropout(0.4) → Linear(1024 → num\_classes).
-* **No Pretrained Weights**: Entire model trained from scratch on your SER data.
+class EnhancedInceptionModel(nn.Module):
+    def __init__(self, in_channels=1, num_classes=8):
+        super().__init__()
+        # Initial conv + pool
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(in_channels, 64, kernel_size=7, stride=2, padding=3),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+        )
+        # Second conv block
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(64, 64, kernel_size=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(64, 192, kernel_size=3, padding=1),
+            nn.BatchNorm2d(192),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+        )
+        # Inception modules
+        self.incep3a = InceptionModule(192, 64, 96, 128, 16, 32, 32)    # out=256
+        self.incep3b = InceptionModule(256, 128, 128, 192, 32, 96, 64)  # out=480
+        self.maxpool3 = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
-### Alternative 1D CNN+BiLSTM+Self-Attention (optional)
+        self.incep4a = InceptionModule(480, 192, 96, 208, 16, 48, 64)   # out=512
+        self.incep4b = InceptionModule(512, 160, 112, 224, 24, 64, 64)  # out=512
+        self.incep4c = InceptionModule(512, 128, 128, 256, 24, 64, 64)  # out=512
+        self.incep4d = InceptionModule(512, 112, 144, 288, 32, 64, 64)  # out=528
+        self.incep4e = InceptionModule(528, 256, 160, 320, 32, 128, 128) # out=832
+        self.maxpool4 = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
-* Input: frame-wise features `[B, T, D]`, permuted to `[B, D, T]`.
-* CNN 1D stack: D→128→256→512→512, then permute `[B, T, 512]`.
-* BiLSTM: input 512, hidden 128 (bidirectional → 256 output).
-* Self-Attention: MultiheadAttention(embed\_dim=256, num\_heads=4) on LSTM outputs.
-* Mean pooling over time → `[B, 256]` → classifier head `[256→128→num_classes]`.
-* Use if 2D approach underperforms; Inception-2D often yields better performance on spectrogram images.
+        self.incep5a = InceptionModule(832, 256, 160, 320, 32, 128, 128) # out=832
+        self.incep5b = InceptionModule(832, 384, 192, 384, 48, 128, 128) # out=1024
 
----
+        # Global pooling & classifier
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))  # [B,1024,1,1]
+        self.dropout = nn.Dropout(0.4)
+        self.fc = nn.Linear(1024, num_classes)
 
-## 🛠 Environment & Setup
+    def forward(self, x):
+        # x: [B,1,H,W]
+        x = self.conv1(x)
+        x = self.conv2(x)
+        x = self.incep3a(x)
+        x = self.incep3b(x)
+        x = self.maxpool3(x)
+        x = self.incep4a(x)
+        x = self.incep4b(x)
+        x = self.incep4c(x)
+        x = self.incep4d(x)
+        x = self.incep4e(x)
+        x = self.maxpool4(x)
+        x = self.incep5a(x)
+        x = self.incep5b(x)
+        x = self.avgpool(x)         # [B,1024,1,1]
+        x = torch.flatten(x, 1)     # [B,1024]
+        x = self.dropout(x)
+        logits = self.fc(x)         # [B,num_classes]
+        return logits
+🔧 Kaggle Environment & Setup
+Training and evaluation are intended to run on Kaggle. The Kaggle kernel includes most common packages like PyTorch, NumPy, and Pandas. You may need to manually install missing packages like librosa and tqdm.
 
-1. **Clone the repository**:
+✅ Steps to Run on Kaggle:
+Upload or Mount Your Audio Dataset
 
-   ```bash
-   git clone https://github.com/yourusername/ser-pipeline.git
-   cd ser-pipeline
-   ```
+Either upload your dataset as a Kaggle Dataset or access it via an existing path like /kaggle/input/....
 
-2. **Conda environment (Windows example)**:
+Open inception.ipynb Notebook
 
-   ```powershell
-   conda create -n ser_app_env python=3.9 -y
-   conda activate ser_app_env
-   conda install pytorch torchvision torchaudio cpuonly -c pytorch -y
-   pip install streamlit librosa numpy pandas matplotlib seaborn tqdm scikit-learn
-   ```
+This notebook contains all necessary code:
 
-3. **Verify files**:
+Imports
 
-   * `scripts/train.py`, `scripts/evaluate.py`, `scripts/inference.py`, `app.py`, `requirements.txt`, `inception_ser_final.pt`.
-   * `requirements.txt` example:
+DataFrame construction
 
-     ```
-     torch
-     torchvision
-     torchaudio
-     librosa
-     numpy
-     pandas
-     scikit-learn
-     matplotlib
-     seaborn
-     tqdm
-     streamlit
-     ```
-   * Run `pip install -r requirements.txt` if you filled it out.
+Feature extraction
 
----
+Model architecture
 
-## 📓 Training (training\_notebook.ipynb or train.py)
+Training loop
 
-1. **Prepare DataFrame**:
+Evaluation metrics and plots
 
-   ```python
-   import pandas as pd
-   # Example lists:
-   paths = ["/path/to/audio1.wav", "/path/to/audio2.wav", ...]
-   labels = ["happy", "sad", "angry", ...]  # or integer labels
-   df = pd.DataFrame({'speech': paths, 'label': labels})
-   # Map to 0-based ints if needed:
-   unique_labels = sorted(df['label'].unique())
-   label_map = {old: new for new, old in enumerate(unique_labels)}
-   df['label'] = df['label'].map(label_map)
-   print("Label mapping:", label_map)
-   print("Label distribution:\n", df['label'].value_counts().sort_index())
-   ```
+Install Any Missing Packages
+If needed, install librosa and tqdm with:
 
-2. **Edit hyperparameters**:
+python
+!pip install librosa tqdm
+Enable GPU Accelerator
 
-   * Batch size: `64`
-   * Learning rate: `1e-4`
-   * Weight decay: `1e-5`
-   * Epochs: e.g. `50` (with early stopping).
-   * Oversample boost: e.g. `{1:2.0,2:2.0,3:2.0,5:2.0}` for underperforming classes.
-   * Use focal loss: `use_focal=True` if certain classes are hard.
+Go to Notebook Settings → Accelerator → GPU.
 
-3. **Run training** (example in `scripts/train.py`):
+Prepare DataFrame
 
-   ```bash
-   python scripts/train.py --data_csv metadata.csv --batch_size 64 --lr 1e-4 --epochs 50 --oversample_boost 1:2.0,3:2.0 --use_focal False
-   ```
+Build a DataFrame with two columns:
 
-   * Internally: loads DataFrame, calls `run_inception_pipeline(...)`, saves best weights `inception_ser_final.pt`.
-   * Prints per-epoch val F1 / Acc, final confusion matrix & per-class accuracies.
+speech: path to .wav file
 
-4. **Inspect metrics**:
+label: integer representing emotion
 
-   * Confirm overall accuracy ≥80%, weighted F1 ≥80%.
-   * Examine confusion matrix: per-class accuracy ≥75%.
-   * If not met: adjust oversample boost, augmentations, model capacity, learning rate, or collect more data.
+Perform stratified train/test split.
 
-5. **Save best model**:
+Training Configuration
 
-   * `train.py` should save state\_dict to `inception_ser_final.pt`.
+DataLoader: Use AudioDataset2D with WeightedRandomSampler
 
----
+Optimizer:
 
-## 📊 Evaluation (evaluate.py)
+python
+optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
+Scheduler:
 
-* Load saved model weights.
-* Run on held-out validation or custom test set.
-* Print classification report and confusion matrix.
-* Example:
+python
+scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs, eta_min=1e-6)
+Loss Function:
 
-  ```bash
-  python scripts/evaluate.py --model_weights inception_ser_final.pt --data_csv val_metadata.csv
-  ```
-* Ensure metrics meet criteria. If not, revisit training hyperparameters or data augmentation.
+Use CrossEntropyLoss with class weights or
 
----
+Optionally, use FocalLoss for harder class separation
 
-## 🔍 Inference Script (inference.py)
+Batch Size: 64 (adjust if GPU memory is limited)
 
-* CLI to predict emotion for one or multiple `.wav` files.
-* Example usage:
+Early Stopping: Monitor weighted F1 score with patience of ~7 epochs
 
-  ```bash
-  python scripts/inference.py --model_weights inception_ser_final.pt --file path/to/audio.wav
-  ```
-* Internally:
+During Each Epoch
 
-  * Load model architecture + weights.
-  * Preprocess audio: extract middle 2s log-mel spectrogram, normalize.
-  * Convert to tensor `[1,1,H,W]`, move to DEVICE.
-  * Run `model(tensor)`, apply softmax, output predicted label and confidence.
-* Extendable: batch inference on folder.
+Compute validation predictions
 
----
+Calculate metrics: weighted F1, overall accuracy, per-class accuracy
 
-## 🌐 Streamlit Web App (app.py)
+Print results
 
-Provides UI to upload a `.wav` file and get predicted emotion:
+Plot confusion matrix for visual insight
 
-1. **Ensure** you are in the project directory containing `app.py` and `inception_ser_final.pt`.
-2. **Run**:
+Save Best Model
 
-   ```bash
-   streamlit run app.py
-   ```
-3. **App behavior**:
+Save the model’s state dict when the best weighted F1 is achieved:
 
-   * Upload a WAV file via browser UI.
-   * The app loads the model once (cached).
-   * Shows audio playback widget.
-   * Extracts middle 2s at 48 kHz → log-mel spectrogram → normalize → tensor `[1,1,H,W]`.
-   * Runs inference, displays predicted emotion label + confidence.
-   * Shows bar chart of full class probability distribution.
-4. **Requirements**:
+python
+torch.save(model.state_dict(), "/kaggle/working/inception_ser_final.pt")
+Evaluation
 
-   * `inception_ser_final.pt` matches the architecture in `app.py`.
-   * `EMOTION_LABELS` in `app.py` matches the label mapping used during training.
-   * If you see “No module named 'torch'” error: activate `ser_app_env` before running `streamlit run app.py`.
-   * The environment variable `KMP_DUPLICATE_LIB_OK=TRUE` is set in `app.py` to bypass OpenMP conflicts if any.
+After training, load the saved weights
 
----
+Evaluate on validation and custom test sets
 
-## ⚙️ Windows-Specific: Running Streamlit
+Ensure all performance thresholds are met:
 
-After activating your conda environment (`ser_app_env`) and installing dependencies:
+✅ Per-class accuracy ≥ 75%
 
-```powershell
-cd C:\Users\RITH\OneDrive\Desktop\speech_emotion
+✅ Overall accuracy ≥ 80%
+
+✅ Weighted F1 ≥ 80%
+
+Download Trained Weights
+
+Go to "Output" tab in Kaggle
+
+Download inception_ser_final.pt for use in local inference
+
+🌐 Local Inference via Streamlit (app.py)
+Use the Streamlit app to locally classify emotion from uploaded .wav files.
+
+✅ Local Setup Instructions
+Set Up Environment
+
+Create a virtual or Conda environment with Python 3.9+
+
+Install dependencies:
+
+bash
+pip install torch torchvision torchaudio
+pip install streamlit librosa numpy pandas matplotlib seaborn tqdm
+Or install from requirements.txt:
+
+bash
+pip install -r requirements.txt
+Prepare Model File
+
+Place inception_ser_final.pt in the same directory as app.py
+
+Run the Streamlit App
+
+bash
+cd path/to/speech_emotion
 streamlit run app.py
-```
+Using the App
 
-* If you get `ModuleNotFoundError: No module named 'torch'`, verify:
+Open browser at http://localhost:8501
 
-  * PyTorch is installed in `ser_app_env`: `conda list | findstr torch`.
-  * You run `streamlit run app.py` after `conda activate ser_app_env`.
-  * In VSCode or other IDE, ensure the integrated terminal uses the correct environment.
+Upload a .wav file
 
----
+The app will:
 
-## 📈 System Workflow
+Load the trained model (only once)
 
-1. **Data Preparation**
+Extract the middle 2 seconds at 48 kHz
 
-   * Collect audio `.wav` file paths and corresponding emotion labels.
-   * Build pandas DataFrame `df` with columns `speech` and `label`.
-   * Map original labels (e.g., emotion names) to 0-based integers.
+Compute log-mel spectrogram, normalize input
 
-2. **Feature Extraction**
+Run model inference
 
-   * For training: use `extract_logmel_spectrogram_middle2s` with `augment=True` for training set, `augment=False` for validation.
-   * For 1D pipeline: extract frame-wise MFCC+delta+log-mel+other spectral features.
+Display:
 
-3. **Model Training**
+🎧 Audio playback
 
-   * Initialize `EnhancedInceptionModel`.
-   * Use WeightedRandomSampler to balance classes; optionally oversample underperforming classes via `oversample_boost`.
-   * Use AdamW (lr=1e-4, weight\_decay=1e-5) and CosineAnnealingLR over epochs.
-   * Loss: CrossEntropyLoss with class weights or FocalLoss.
-   * Early stopping on validation weighted F1 (patience \~7 epochs).
-   * Save best `state_dict` (e.g., `inception_ser_final.pt`).
+📊 Predicted emotion & confidence
 
-4. **Model Evaluation**
+📈 Bar chart of probabilities for all classes
 
-   * Load best weights, evaluate on held-out test set.
-   * Print classification report, confusion matrix.
-   * Confirm: per-class accuracy ≥75%, overall accuracy ≥80%, weighted F1 ≥80%.
-   * If criteria not met: adjust oversample boost, augmentations, hyperparameters, or gather more data.
+⚠️ Troubleshooting
+Issue	Solution
+ModuleNotFoundError: No module named 'torch'	Make sure you're in the correct virtual/conda environment and PyTorch is installed
+OpenMP warning (libiomp5md.dll already initialized)	Handled via: os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE" in app.py
+Model file not found	Check that MODEL_WEIGHTS_PATH in app.py matches the actual location of inception_ser_final.pt
+Audio not recognized / Bad format	Only .wav files are supported. Use mono 48kHz, or let librosa auto-resample
 
-5. **Inference & CLI**
+📈 Workflow Summary
+🧪 Training & Evaluation (Kaggle)
+Build a labeled DataFrame from your audio files
 
-   * Provide `inference.py` for batch or single-file predictions.
+Perform train/test split
 
-6. **Web App Deployment**
+Train the model using:
 
-   * Build `app.py` (Streamlit) as above.
-   * Run `streamlit run app.py`, upload `.wav`, view predicted emotion and probability chart.
-   * Optionally host on Streamlit Cloud or other service.
+InceptionModel architecture
 
-7. **Documentation & Demo**
+Weighted sampler, augmentation, optional focal loss
 
-   * Include this README.md.
-   * Provide demo video showing installation, training small sample, running web app.
+Validation and metrics per epoch
 
----
+Save the best model:
 
-## 📂 Deliverables
+inception_ser_final.pt
 
-1. **GitHub Repository** containing:
+🖥️ Inference (Local)
+Setup your environment
 
-   * `notebooks/training_notebook.ipynb`: Full code for data loading, feature extraction, model definition, training loops, metrics, plots.
-   * `inception_ser_final.pt`: Trained model weights (state\_dict).
-   * `scripts/train.py`, `scripts/evaluate.py`, `scripts/inference.py`: CLI scripts for training, evaluation, inference.
-   * `app.py`: Streamlit web app for real-time emotion prediction.
-   * `requirements.txt`: Dependencies.
-   * `README.md`: This file.
-   * `demo_video.mp4` (or link): 2-minute demo showing web-app usage.
+Place app.py and inception_ser_final.pt in the same folder
 
-2. **Trained Model**:
+Run Streamlit:
 
-   * Save best weights under `inception_ser_final.pt`. Must match architecture in `app.py`.
+bash
+streamlit run app.py
+Upload a .wav → get emotion prediction with probability chart
 
-3. **Python Scripts**:
+📜 requirements.txt
+Make sure this file contains:
 
-   * `inference.py`: Accepts path(s) to `.wav` and prints predicted label + confidence.
-   * `evaluate.py`: Load validation DataFrame, run model, print classification report, confusion matrix.
+torch
+torchvision
+torchaudio
+librosa
+numpy
+pandas
+scikit-learn
+matplotlib
+seaborn
+tqdm
+streamlit
+On Kaggle: most are preinstalled
 
-4. **README.md**: This file.
-
-5. **Demo Video**: Show environment setup, run web app, upload audio, see predictions, and sample confusion matrix.
-
-6. **Web App**: Hosted or instructions for local run.
-
----
-
-## 🔧 Troubleshooting
-
-* **“No module named 'torch'” in Streamlit**: Ensure `streamlit run app.py` is executed in the same conda environment where PyTorch is installed.
-* **OpenMP error (libiomp5md.dll)**: In `app.py`, `os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"` is set at top.
-* **Model file location**: Ensure `inception_ser_final.pt` is in same directory or adjust `MODEL_WEIGHTS_PATH`.
-* **Audio sampling**: App expects 48kHz. librosa will resample if input differs. Short files are zero-padded, longer truncated to middle 2s.
-* **Underperforming classes**: Check confusion matrix; use `oversample_boost` in training, more augmentation, adjust hyperparameters.
-* **GPU vs CPU**: If GPU available, training/inference uses it; for CPU-only, reduce batch size if needed.
-* **Streamlit caching**: Model loaded once via `@st.cache_resource`. Restart app if weights or code change.
-
----
-
-## 📖 Example Usage
-
-1. **Prepare DataFrame** in notebook:
-
-   ```python
-   import pandas as pd
-   paths = ["/path/to/audio1.wav", "/path/to/audio2.wav", ...]
-   labels = ["happy", "sad", "angry", ...]
-   df = pd.DataFrame({'speech': paths, 'label': labels})
-   unique_labels = sorted(df['label'].unique())
-   label_map = {old: new for new, old in enumerate(unique_labels)}
-   df['label'] = df['label'].map(label_map)
-   print("Label mapping:", label_map)
-   print(df['label'].value_counts().sort_index())
-   ```
-
-2. **Train**:
-
-   ```bash
-   python scripts/train.py --data_csv data/metadata.csv --batch_size 64 --lr 1e-4 --epochs 50 --oversample_boost 1:2.0,3:2.0
-   ```
-
-   * Saves `inception_ser_final.pt`.
-
-3. **Evaluate**:
-
-   ```bash
-   python scripts/evaluate.py --model_weights inception_ser_final.pt --data_csv data/val_metadata.csv
-   ```
-
-4. **Inference CLI**:
-
-   ```bash
-   python scripts/inference.py --model_weights inception_ser_final.pt --file path/to/test.wav
-   ```
-
-5. **Run Web App**:
-
-   ```bash
-   conda activate ser_app_env
-   streamlit run app.py
-   ```
-
-   * Upload WAV, see predicted emotion and probabilities.
-
----
-
-## 🤝 Contributions
-
-Open issues or pull requests to:
-
-* Improve model architecture or hyperparameters.
-* Add more augmentations (time-stretch, noise injection).
-* Experiment with alternative architectures.
-* Add test-time augmentation.
-* Dockerize the app.
-* Host on Streamlit Cloud, Heroku, AWS.
-
----
-
-
-## Acknowledgments
-
-* Inspired by SER research on RAVDESS dataset.
-* Inception architecture adapted for spectrograms.
-* PyTorch tutorials for CNN/RNN/Attention.
-* Streamlit examples for audio apps.
-
----
-
-*End of README.md*
+On local machine: use pip install -r requirements.txt or install manually
