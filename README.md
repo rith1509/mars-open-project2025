@@ -507,3 +507,127 @@ streamlit
 On Kaggle: most are preinstalled
 
 On local machine: use pip install -r requirements.txt or install manually
+
+
+# 🧪 test\_model.py — Local Inference Script
+
+`test_model.py` is a standalone Python script to **test a trained Speech Emotion Recognition (SER) model** locally on one or more `.wav` files. It uses the same **log-mel spectrogram** feature extraction and **Inception-style CNN** model architecture from training to predict emotions from speech audio.
+
+---
+
+## 🔍 What This Script Does
+
+* Loads the trained model from `inception_ser_final.pt`
+* Reads a test `.wav` file (hardcoded or passed via CLI)
+* Extracts the middle 2 seconds of audio at 48kHz
+* Computes a normalized log-mel spectrogram (64 mel bands)
+* Feeds the spectrogram into the model to get predicted emotion
+* Prints the predicted **label** and optionally the **probabilities**
+
+---
+
+## 📂 Folder Requirements
+
+Place this script inside your local `speech_emotion/` directory along with:
+
+```
+speech_emotion/
+├── test_model.py           # <- This script
+├── inception_ser_final.pt  # <- Trained model weights (state_dict)
+├── any_test.wav            # <- Your local test WAV file
+```
+
+---
+
+## ✅ Example Usage
+
+```bash
+python test_model.py
+```
+
+It will predict the emotion for a hardcoded file path, e.g.:
+
+```python
+file_path = "C:/Users/RITH/OneDrive/Desktop/speech_emotion/03-01-02-02-01-02-10.wav"
+```
+
+You can modify or extend the script to accept file paths via CLI.
+
+---
+
+## 🧠 Model Requirements
+
+* The model used is an **EnhancedInceptionModel** trained on 48kHz, 2s middle crop, log-mel spectrograms.
+* Model weights must be saved using `torch.save(model.state_dict())`.
+
+---
+
+## 🧩 Key Components
+
+### Feature Extraction
+
+```python
+def extract_logmel_spectrogram_middle2s(...):
+    # Extract middle 2s at 48kHz
+    # Compute log-mel spectrogram (64 mel bands)
+    # Normalize per input
+    # Return shape: [1, 1, 64, T]
+```
+
+### Model Class
+
+```python
+class EnhancedInceptionModel(nn.Module):
+    # Uses Inception-style modules with multiple conv branches
+    # Ends in adaptive pooling and fully connected classifier
+```
+
+### Inference Logic
+
+```python
+model = EnhancedInceptionModel()
+model.load_state_dict(torch.load("inception_ser_final.pt"))
+model.eval()
+
+# Load and preprocess input
+input_tensor = torch.from_numpy(feature).unsqueeze(0)
+logits = model(input_tensor)
+probs = torch.softmax(logits, dim=1)
+pred = torch.argmax(probs, dim=1).item()
+print("Predicted emotion:", labels[pred])
+```
+
+---
+
+## 🔧 Dependencies
+
+Make sure the following are installed (in `requirements.txt`):
+
+* `torch`
+* `librosa`
+* `numpy`
+
+Install them via:
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## 📌 Notes
+
+* Only `.wav` files are supported
+* If your audio is <2s, it will be padded
+* Sample rate must be 48kHz or librosa will resample
+* Results depend on training distribution and class mapping
+
+---
+
+## 🧪 Sample Output
+
+```bash
+Predicted Emotion: happy
+Probabilities: [neutral: 0.01, calm: 0.02, happy: 0.92, sad: 0.01, ...]
+```
+
